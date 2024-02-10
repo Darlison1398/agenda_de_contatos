@@ -1,22 +1,13 @@
 <?php
- 
- # vamos linkar as bibliotecas que vamos usar;
- include_once("config/url.php");
-
- # banco de dados
- //include_once("config/connection.php");
- # o link de conexão com o banco acima, foi apenas para teste. Como a conexão deu certo, podemos excluir ele
- # por isso que ele está comentado.
-
- # select de dados vindo do config/process.php
- include_once("config/process.php");
 
 
- // limpa a mensagem
- if(isset($_SESSION['msg'])){
+include_once("config/url.php");
+include_once("config/process.php");
+
+if (isset($_SESSION['msg'])) {
     $printMsg = $_SESSION['msg'];
     $_SESSION['msg'] = '';
- }
+}
 ?>
 
 <!DOCTYPE html>
@@ -37,17 +28,18 @@
 </head>
 <body>
     <header>
-        <!-- Aplicando o Bootstrap -->
-        <nav class="navbar navbar-expend-lg navbar-dark bg-primary">
-            <a class= "navbar-brand" href="<?= $BASE_URL ?>index.php"> <!-- endereço do index.php / home do sistema -->
-                <img src="<?= $BASE_URL ?>img/logo.svg" alt="agenda">
-            </a>
-
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div>
-                <div class="navbar-nav">
-                    <a class="nav-link active" id= "home-link" href="<?= $BASE_URL ?>index.php">Agenda</a>
-                    <a class="nav-link active" href="<?= $BASE_URL ?>create.php">Adicionar Contato</a>
-                </div>
+                <a class="navbar-brand" href="<?= $BASE_URL ?>index.php">
+                    <img src="<?= $BASE_URL ?>/img/logo.svg" alt="agenda">
+                </a>
+            </div>
+
+            <div class="navbar-nav" style="margin-left: auto;">
+                <a class="nav-link active" id="home-link" href="<?= $BASE_URL ?>index.php">Agenda</a>
+                <a class="nav-link active" href="<?= $BASE_URL ?>create.php">Adicionar Contato</a>
             </div>
         </nav>
     </header>
+</body>
+</html>

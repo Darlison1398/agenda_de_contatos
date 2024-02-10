@@ -10,21 +10,61 @@
   if(!empty($data)){
 
     // modificação no banco
-    
+        // Upload da imagem
+        if (isset($_FILES["caminho_imagem"])) {
+          $uploadDirectory = "../img/foto/";
+          $uploadedFile = $uploadDirectory . basename($_FILES["caminho_imagem"]["name"]);
+          $uploadOk = 1;
+          
+          // Verificar se o arquivo já existe
+          if (file_exists($uploadedFile)) {
+              $_SESSION["msg"] = "Erro: A imagem já existe.";
+              $uploadOk = 0;
+          }
+  
+          // Verificar o tamanho máximo permitido (5MB neste exemplo)
+          if ($_FILES["caminho_imagem"]["size"] > 5000000) {
+              $_SESSION["msg"] = "Erro: A imagem é muito grande.";
+              $uploadOk = 0;
+          }
+  
+          // Verificar o tipo de arquivo (você pode adicionar mais tipos conforme necessário)
+          $allowedTypes = ["jpg", "jpeg", "png", "gif"];
+          $fileExtension = strtolower(pathinfo($uploadedFile, PATHINFO_EXTENSION));
+          if (!in_array($fileExtension, $allowedTypes)) {
+              $_SESSION["msg"] = "Erro: Somente arquivos JPG, JPEG, PNG e GIF são permitidos.";
+              $uploadOk = 0;
+          }
+  
+          // Verificar se $uploadOk é 0 devido a um erro
+          if ($uploadOk == 0) {
+              $_SESSION["msg"] = "Erro: A imagem não foi enviada.";
+          } else {
+              // Se tudo estiver correto, tentar fazer o upload
+              if (move_uploaded_file($_FILES["caminho_imagem"]["tmp_name"], $uploadedFile)) {
+                  $_SESSION["msg"] = "Imagem enviada com sucesso.";
+                  $caminho_imagem = $uploadedFile;
+              } else {
+                  $_SESSION["msg"] = "Erro ao fazer o upload da imagem.";
+              }
+          }
+      }
 
     # CRIANDO contato. Alógica é baseada no tipo que vem do formulário
     if($data["type"] === "create"){
       $name = $data["name"];
       $phone = $data["phone"];
       $observations = $data["observations"];
+      //$caminho_imagem = $data["caminho_imagem"];
 
-      $query = "INSERT INTO contacts (name, phone, observations) VALUES (:name, :phone, :observations)";
+      $query = "INSERT INTO contacts (name, phone, observations, caminho_imagem) VALUES (:name, :phone, :observations, :caminho_imagem)";
 
       $stmt = $conn->prepare($query);
 
       $stmt->bindParam(":name", $name);
       $stmt->bindParam(":phone", $phone);
       $stmt->bindParam(":observations", $observations);
+      $stmt->bindParam(":caminho_imagem", $caminho_imagem);
 
       try {
         $stmt->execute();
@@ -42,15 +82,40 @@
     $observations = $data["observations"];
     $id = $data["id"];
 
-    $query = "UPDATE contacts SET name = :name, phone = :phone, observations = :observations WHERE id = :id";
+    // Antes de preparar a consulta, certifique-se de que o caminho da imagem está definido corretamente
+    if (isset($_FILES['caminho_imagem']) && $_FILES['caminho_imagem']['error'] == UPLOAD_ERR_OK) {
+      $uploadDirectory = "../img/foto/";
+      $uploadedFile = $uploadDirectory . basename($_FILES["caminho_imagem"]["name"]);
+      
+      if (move_uploaded_file($_FILES["caminho_imagem"]["tmp_name"], $uploadedFile)) {
+          $_SESSION["msg"] = "Imagem enviada com sucesso.";
+          $caminho_imagem = basename($_FILES["caminho_imagem"]["name"]); 
+      } else {
+          $_SESSION["msg"] = "Erro ao fazer o upload da imagem.";
+      }
+    }
+    
+    $query = "UPDATE contacts SET name = :name, phone = :phone, observations = :observations";
+    
+    if (isset($caminho_imagem)) {
+      $query .= ", caminho_imagem = :caminho_imagem";
+    }
+    
+    //$query .= " WHERE id = :id";
+
+    $query .= " WHERE id = :id";
 
     $stmt = $conn->prepare($query);
-
     $stmt->bindParam(":name", $name);
     $stmt->bindParam(":phone", $phone);
     $stmt->bindParam(":observations", $observations);
+    
+    if (isset($caminho_imagem)) {
+      $stmt->bindParam(":caminho_imagem", $caminho_imagem);
+    }
+    
     $stmt->bindParam(":id", $id);
-
+    
     try {
       $stmt->execute();
       $_SESSION["msg"] = "Contato atualizado com sucesso!!!";
@@ -58,7 +123,11 @@
       $error = $e->getMessage();
       echo "Erro: $error";
     }
+       
     
+    
+
+
 
     ## DELETANDO CONTATO
   } else if($data["type"] === "delete"){
@@ -100,6 +169,12 @@
 
     $contact = $stmt->fetch();
   }
+
+
+
+
+
+  
   // retorna todos os contatos
   $contacts = [];
 
@@ -124,3 +199,4 @@
 
   # ESSE processo, deve ser inserido na header
 ?>
+
